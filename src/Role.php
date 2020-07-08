@@ -8,10 +8,6 @@ abstract class Role
 {
 
     protected static $instances = [];
-    /**
-     * @var int|null
-     */
-    protected $level = null;
 
     /**
      * @return static
@@ -55,10 +51,6 @@ abstract class Role
         }
 
         $wpRole = get_role($instance->roleName());
-
-        if ($instance->level !== null) {
-            $defaultCapabilities['level_' . $instance->level] = true;
-        }
 
         if ($wpRole === null) {
             add_role($instance->roleName(), $instance->displayName(), $defaultCapabilities);
