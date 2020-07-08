@@ -1,0 +1,20 @@
+{
+    "name": "rockschtar/wordpress-role",
+    "description": "WordPress Role Abstraction",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Stefan Helmer",
+            "email": "rockschtar@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Rockschtar\\WordPress\\Role\\": "src/"
+        }
+    }
+}
