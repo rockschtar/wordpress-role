@@ -29,8 +29,12 @@ abstract class Role
     abstract public function roleName(): string;
 
     abstract public function displayName(): string;
-    
+
     abstract public function capabilities(): array;
+
+    protected function inheritFrom() : string {
+        return apply_filters('rswpr_default_inherit_from_role', 'subscriber');
+    }
 
     final public static function register(): void
     {
@@ -38,15 +42,19 @@ abstract class Role
 
         do_action('rswpr_before_register_role', $instance);
 
-        $subscriberRole = get_role('subscriber');
+        $defaultCapabilities = [];
 
-        if ($subscriberRole === null) {
-            throw new RuntimeException('Fatal: Subscriber Role is not available');
+        if ($instance->inheritFrom()) {
+            $inheritFromRole = get_role($instance->inheritFrom());
+
+            if ($inheritFromRole === null) {
+                throw new RuntimeException(sprintf('Fatal: %s Role is not available', $instance->inheritFrom()));
+            }
+
+            $defaultCapabilities = $inheritFromRole->capabilities;
         }
 
         $wpRole = get_role($instance->roleName());
-
-        $defaultCapabilities = $subscriberRole->capabilities;
 
         if ($instance->level !== null) {
             $defaultCapabilities['level_' . $instance->level] = true;
