@@ -16,7 +16,7 @@ abstract class Role
     {
         /** @noinspection ClassConstantCanBeUsedInspection */
         $class = \get_called_class();
-        if (self::$instances[$class] === null) {
+        if (!array_key_exists($class, self::$instances) || self::$instances[$class] === null) {
             self::$instances[$class] = new $class();
         }
         return self::$instances[$class];
