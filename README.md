@@ -57,7 +57,7 @@ function myprefix_register_faq_role() {
 register_deactivation_hook(MY_PLUGIN_FILE, 'myprefix_unregister_faq_role');
 
 function myprefix_unregister_faq_role() {
-    FAQManagerRole::register();
+    FAQManagerRole::unregister();
 }
 ```
 
