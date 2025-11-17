@@ -6,15 +6,10 @@ use RuntimeException;
 
 abstract class Role
 {
+    protected static array $instances = [];
 
-    protected static $instances = [];
-
-    /**
-     * @return static
-     */
-    protected static function &init()
+    protected static function &init(): static
     {
-        /** @noinspection ClassConstantCanBeUsedInspection */
         $class = \get_called_class();
         if (!array_key_exists($class, self::$instances) || self::$instances[$class] === null) {
             self::$instances[$class] = new $class();
@@ -28,7 +23,8 @@ abstract class Role
 
     abstract public static function capabilities(): array;
 
-    protected function inheritFrom() : string {
+    protected function inheritFrom(): string
+    {
         return apply_filters('rswpr_default_inherit_from_role', 'subscriber');
     }
 
@@ -86,8 +82,4 @@ abstract class Role
 
         return apply_filters('rswp_get_wp_role', $wpRole);
     }
-
-
-
-
 }
