@@ -7,7 +7,7 @@ WordPress Role abstraction. Developed for usage  with composer based WordPress p
 
 ## Requirements
 
-- PHP 7.1
+- PHP 8.3
 - [Composer](https://getcomposer.org/) to install
 
 ## Install
