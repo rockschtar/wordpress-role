@@ -19,7 +19,6 @@ class RoleTest extends TestCase
         parent::setUp();
         Monkey\setUp();
 
-        // Reset singleton instances between tests
         $reflection = new \ReflectionProperty(Role::class, 'instances');
         $reflection->setValue(null, []);
     }
@@ -28,33 +27,6 @@ class RoleTest extends TestCase
     {
         Monkey\tearDown();
         parent::tearDown();
-    }
-
-    private function makeRole(string $name, string $display, array $caps): Role
-    {
-        return new class ($name, $display, $caps) extends Role {
-            public function __construct(
-                private string $name,
-                private string $display,
-                private array $caps,
-            ) {
-            }
-
-            public static function roleName(): string
-            {
-                return 'faq_manager';
-            }
-
-            public static function displayName(): string
-            {
-                return 'FAQ Manager';
-            }
-
-            public static function capabilities(): array
-            {
-                return ['edit_faqs', 'delete_faqs'];
-            }
-        };
     }
 
     // --- register() ---
@@ -66,21 +38,25 @@ class RoleTest extends TestCase
 
         Functions\when('apply_filters')->returnArg(2);
         Functions\when('do_action')->justReturn();
-        Functions\expect('get_role')
-            ->with('subscriber')->andReturn($subscriberRole)
-            ->getMock();
-        Functions\expect('get_role')
-            ->with('faq_manager')->andReturn(null, $faqRole);
         Functions\expect('add_role')
             ->once()
             ->with('faq_manager', 'FAQ Manager', ['read' => true]);
+
+        $faqManagerCalls = 0;
+        Functions\when('get_role')->alias(
+            function (string $role) use ($subscriberRole, $faqRole, &$faqManagerCalls): ?WP_Role {
+                if ($role === 'subscriber') {
+                    return $subscriberRole;
+                }
+                return ++$faqManagerCalls > 1 ? $faqRole : null;
+            }
+        );
 
         FaqManagerRole::register();
     }
 
     public function testRegisterSkipsAddRoleWhenRoleAlreadyExists(): void
     {
-        $subscriberRole = new WP_Role('subscriber', ['read' => true]);
         $faqRole = new WP_Role('faq_manager', ['read' => true]);
 
         Functions\when('apply_filters')->returnArg(2);
@@ -95,7 +71,7 @@ class RoleTest extends TestCase
     {
         Functions\when('apply_filters')->returnArg(2);
         Functions\when('do_action')->justReturn();
-        Functions\expect('get_role')->with('subscriber')->andReturnNull();
+        Functions\when('get_role')->justReturn(null);
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageMatches('/subscriber/i');
@@ -112,19 +88,19 @@ class RoleTest extends TestCase
 
         Functions\when('apply_filters')->returnArg(2);
         Functions\when('do_action')->justReturn();
-        Functions\expect('get_role')
-            ->with('subscriber')->andReturn($subscriberRole);
-        Functions\expect('get_role')
-            ->with('faq_manager')->andReturn(null, $faqRole);
         Functions\when('add_role')->justReturn();
+        Functions\when('get_role')->alias(
+            function (string $role) use ($subscriberRole, $faqRole): ?WP_Role {
+                return $role === 'subscriber' ? $subscriberRole : $faqRole;
+            }
+        );
 
         FaqManagerRole::register();
     }
 
     public function testRegisterFiresHooks(): void
     {
-        $subscriberRole = new WP_Role('subscriber', ['read' => true]);
-        $faqRole = new WP_Role('faq_manager', ['read' => true, 'edit_faqs' => true, 'delete_faqs' => true]);
+        $faqRole = new WP_Role('faq_manager', ['read' => true]);
 
         Functions\when('apply_filters')->returnArg(2);
         Functions\when('get_role')->justReturn($faqRole);
@@ -163,21 +139,19 @@ class RoleTest extends TestCase
         Functions\when('get_role')->justReturn($faqRole);
         Functions\when('apply_filters')->returnArg(2);
 
-        $instance = new FaqManagerRole();
-        $result = $instance->getWPRole();
+        $result = (new FaqManagerRole())->getWPRole();
 
         self::assertSame($faqRole, $result);
     }
 
     public function testGetWPRoleThrowsWhenRoleNotFound(): void
     {
-        Functions\when('get_role')->justReturnNull();
+        Functions\when('get_role')->justReturn(null);
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageMatches('/faq_manager/i');
 
-        $instance = new FaqManagerRole();
-        $instance->getWPRole();
+        (new FaqManagerRole())->getWPRole();
     }
 
     public function testGetWPRoleAppliesFilter(): void
@@ -190,22 +164,21 @@ class RoleTest extends TestCase
             ->with('rswp_get_wp_role', $original)
             ->andReturn($filtered);
 
-        $instance = new FaqManagerRole();
-        $result = $instance->getWPRole();
+        $result = (new FaqManagerRole())->getWPRole();
 
         self::assertSame($filtered, $result);
     }
 
     // --- inheritFrom() ---
 
-    public function testInheritFromDefaultIsFilteredSubscriber(): void
+    public function testInheritFromDefaultIsSubscriber(): void
     {
         Functions\expect('apply_filters')
             ->with('rswpr_default_inherit_from_role', 'subscriber')
             ->andReturn('subscriber');
 
-        $instance = new FaqManagerRole();
-        $result = (new \ReflectionMethod($instance, 'inheritFrom'))->invoke($instance);
+        $result = (new \ReflectionMethod(FaqManagerRole::class, 'inheritFrom'))
+            ->invoke(new FaqManagerRole());
 
         self::assertSame('subscriber', $result);
     }
@@ -216,15 +189,14 @@ class RoleTest extends TestCase
             ->with('rswpr_default_inherit_from_role', 'subscriber')
             ->andReturn('editor');
 
-        $instance = new FaqManagerRole();
-        $result = (new \ReflectionMethod($instance, 'inheritFrom'))->invoke($instance);
+        $result = (new \ReflectionMethod(FaqManagerRole::class, 'inheritFrom'))
+            ->invoke(new FaqManagerRole());
 
         self::assertSame('editor', $result);
     }
 }
 
-// Concrete test double — defined outside the test class so it has a stable class name
-// (needed for the singleton key and LSB calls like $instance::roleName())
+// Stable class name required for singleton key and LSB calls ($instance::roleName())
 class FaqManagerRole extends Role
 {
     public static function roleName(): string

@@ -14,11 +14,22 @@
   },
   "require-dev": {
     "roave/security-advisories": "dev-latest",
-    "squizlabs/php_codesniffer": "3.*"
+    "squizlabs/php_codesniffer": "3.*",
+    "phpunit/phpunit": "^11",
+    "brain/monkey": "^2"
   },
   "autoload": {
     "psr-4": {
       "Rockschtar\\WordPress\\Role\\": "src/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Rockschtar\\WordPress\\Role\\Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "test": "phpunit",
+    "cs": "phpcs"
   }
 }
