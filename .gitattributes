@@ -1,0 +1,11 @@
+* text=auto eol=lf
+
+/.gitattributes export-ignore
+/.github export-ignore
+/.gitignore export-ignore
+/.lando.yml export-ignore
+/.phpcs.xml export-ignore
+/tests export-ignore
+/phpunit.xml export-ignore
+/CLAUDE.md export-ignore
+/composer.lock export-ignore

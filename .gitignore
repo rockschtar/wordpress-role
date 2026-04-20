@@ -1,2 +1,5 @@
 .idea
 vendor
+.claude
+.phpunit.result.cache
+CLAUDE.md

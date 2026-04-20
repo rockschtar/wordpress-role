@@ -1,0 +1,19 @@
+name: wordpress-role
+services:
+  php:
+    type: php:8.3
+    via: cli
+    composer_version: '2-latest'
+    xdebug: false
+
+tooling:
+  php:
+    service: php
+  composer:
+    service: php
+  test:
+    service: php
+    cmd: ./vendor/bin/phpunit
+  phpcs:
+    service: php
+    cmd: ./vendor/bin/phpcs
