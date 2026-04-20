@@ -11,7 +11,7 @@ jobs:
     name: PHPUnit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: shivammathur/setup-php@v2
         with:
@@ -32,7 +32,7 @@ jobs:
     name: PHP_CodeSniffer
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: shivammathur/setup-php@v2
         with:
